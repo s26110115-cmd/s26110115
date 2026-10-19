@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>湯姆貓與傑利鼠的秘密留言牆</title>
+  <!-- 引入 Google Fonts 復古卡通風格圓潤字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       1. 全局與變數設定 (湯姆貓與傑利鼠 復古黃棕配色區)
+       ========================================================= */
+    :root {
+      /* 【主題顏色設定】 */
+      --bg-color: #fdf6e2;          /* 奶酪黃溫暖底色 */
+      --tom-blue: #71889c;          /* 湯姆貓灰藍色 */
+      --jerry-brown: #c88141;       /* 傑利鼠暖棕色 */
+      --card-bg: #fffbf0;           /* 卡片奶油白 */
+      --card-border: #4a3828;       /* 手繪風格深棕粗邊框 */
+      --text-main: #3a2e2b;         /* 深褐色文字 */
+      --text-muted: #8c7362;        /* 次要時間文字 */
+      
+      /* 【重點 Highlight：起司奶酪爆發配色】 */
+      --highlight-color: #ffb703;   /* 起司金黃色 */
+      --highlight-bg: #fff4cc;      /* 亮黃起司卡片背景 */
+      --highlight-border: #fb8500;  /* 亮橘色邊框 */
+      --highlight-glow: rgba(251, 133, 0, 0.4); /* 溫暖暖光氣氛 */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      /* 經典美式復古圓點背景紋理 */
+      background-image: radial-gradient(var(--jerry-brown) 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+      background-color: #fdf6e2;
+      color: var(--text-main);
+      font-family: 'Fredoka', 'PingFang TC', 'Microsoft JhengHei', cursive, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      color: var(--jerry-brown);
+      /* 經典卡通 3D 陰影邊框字體 */
+      text-shadow: 
+        3px 3px 0px var(--card-border),
+        -1px -1px 0px var(--card-border),
+        1px -1px 0px var(--card-border),
+        -1px 1px 0px var(--card-border);
+      color: var(--highlight-color);
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      transform: rotate(-1.5deg); /* 微傾斜展現美式漫畫感 */
+    }
+
+    header p {
+      color: var(--card-border);
+      font-weight: bold;
+      font-size: 1.1rem;
+      background: #ffe3a8;
+      display: inline-block;
+      padding: 0.3rem 1.2rem;
+      border-radius: 20px;
+      border: 2px solid var(--card-border);
+      box-shadow: 2px 2px 0px var(--card-border);
+    }
+
+    /* =========================================================
+       2. 載入中動畫 (Tom & Jerry 傑利鼠偷起司跑動動畫)
+       ========================================================= */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4rem;
+    }
+
+    /* 搖擺彈跳的起司塊 */
+    .cheese-spinner {
+      width: 60px;
+      height: 60px;
+      background-color: var(--highlight-color);
+      clip-path: polygon(50% 0%, 100% 100%, 0% 100%); /* 三角形起司塊 */
+      position: relative;
+      animation: bounce 0.6s ease-in-out infinite alternate;
+      border-bottom: 5px solid var(--highlight-border);
+    }
+
+    /* 起司小孔洞 */
+    .cheese-spinner::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background-color: #fb8500;
+      border-radius: 50%;
+      top: 28px;
+      left: 20px;
+      box-shadow: 12px -10px 0 -2px #fb8500;
+    }
+
+    @keyframes bounce {
+      0% { transform: translateY(0) rotate(-10deg); }
+      100% { transform: translateY(-25px) rotate(10deg); }
+    }
+
+    .loading-text {
+      margin-top: 1.5rem;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--card-border);
+      letter-spacing: 1px;
+    }
+
+    /* =========================================================
+       3. 瀑布流版面設定 (Masonry Layout)
+       ========================================================= */
+    .masonry-grid {
+      width: 100%;
+      max-width: 1200px;
+      column-count: 3;
+      column-gap: 1.8rem;
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .masonry-grid { column-count: 2; }
+    }
+    @media (max-width: 600px) {
+      .masonry-grid { column-count: 1; }
+    }
+
+    /* =========================================================
+       4. 卡片樣式與卡通 Focus 特效 (Highlight)
+       ========================================================= */
+    .card {
+      background-color: var(--card-bg);
+      border: 3.5px solid var(--card-border);
+      border-radius: 18px;
+      padding: 1.5rem;
+      margin-bottom: 1.8rem;
+      break-inside: avoid;
+      
+      /* 美式復古漫畫立體陰影 (Hard Shadow) */
+      box-shadow: 5px 5px 0px var(--card-border);
+      
+      /* 平滑放大過渡 */
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                  box-shadow 0.4s ease, 
+                  filter 0.4s ease, 
+                  opacity 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      opacity: 0.85;
+    }
+
+    /* 卡片右上角的裝飾性可愛插圖標籤 */
+    .card::before {
+      content: '🧀';
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 1.2rem;
+      opacity: 0.5;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 0.8rem;
+      border-bottom: 2px dashed var(--jerry-brown);
+      padding-bottom: 0.5rem;
+    }
+
+    .card-name {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--jerry-brown);
+    }
+
+    .card-time {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--text-muted);
+      margin-right: 1.5rem;
+    }
+
+    .card-content {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-weight: 500;
+    }
+
+    /* 【重點特效】：卡通焦點亮起狀態 (Highlight) */
+    .card.highlight {
+      background-color: var(--highlight-bg);
+      border-color: var(--card-border);
+      /* 爆發性硬陰影 + 亮橘光暈 */
+      box-shadow: 8px 8px 0px var(--highlight-border), 0 0 20px var(--highlight-glow);
+      transform: scale(1.08) rotate(-1deg); /* 像卡通漫畫般誇張放大並微歪斜 */
+      z-index: 10;
+      opacity: 1;
+      filter: blur(0);
+    }
+
+    .card.highlight::before {
+      content: '🐱'; /* 湯姆抓到了！ */
+      opacity: 1;
+      font-size: 1.5rem;
+    }
+
+    /* 【重點特效】：未被選中的卡片暗化/模糊感 */
+    .masonry-grid.has-highlight .card:not(.highlight) {
+      opacity: 0.45;
+      filter: blur(1.5px) grayscale(20%);
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Tom & Jerry's Board</h1>
+    <p>🐱 湯姆貓與傑利鼠的追逐留言牆 🧀</p>
+  </header>
+
+  <!-- 讀取中動畫區塊 -->
+  <div id="loading">
+    <div class="cheese-spinner"></div>
+    <div class="loading-text">傑利鼠正在偷搬留言...</div>
+  </div>
+
+  <!-- 瀑布流卡片牆 -->
+  <div id="masonry" class="masonry-grid"></div>
+
+  <script>
+    /* =========================================================
+       【計時器設定區域】控制卡片輪播切換頻率 (單位：毫秒)
+       ========================================================= */
+    const ROTATE_INTERVAL_MS = 3000; // 預設 3000 毫秒 (3秒) 亮起一張卡片
+
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTa7rcx9O6Zbyh11M4N4UTUdhz4srsA7qdYHrUkndU8vyo0pcKg2qDzGzxnlkeEkr_2V-s6zswIaDJU/pub?output=csv';
+
+    let cardsData = [];
+    let currentIndex = -1;
+    let timer = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchCommentsData();
+    });
+
+    async function fetchCommentsData() {
+      try {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error('無法取得連線');
+        const csvText = await response.text();
+        
+        cardsData = parseCSV(csvText);
+
+        document.getElementById('loading').style.display = 'none';
+        const masonryContainer = document.getElementById('masonry');
+        masonryContainer.style.display = 'block';
+
+        if (cardsData.length === 0) {
+          masonryContainer.innerHTML = '<p style="text-align:center; font-weight:bold;">湯姆貓把留言都吃光了，目前沒有資料！</p>';
+          return;
+        }
+
+        renderCards(cardsData);
+        startCarousel();
+
+      } catch (error) {
+        console.error('CSV 讀取失敗:', error);
+        document.getElementById('loading').innerHTML = `
+          <div style="color: #d62828; text-align: center; font-weight: bold;">
+            <p>💥 哎呀！陷入卡通混亂了，資料載入失敗！</p>
+            <p style="font-size: 0.85rem; margin-top: 0.5rem;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * CSV 安全解析器 (支援內文含逗號與引號)
+     */
+    function parseCSV(text) {
+      const lines = [];
+      let row = [];
+      let currentVal = '';
+      let insideQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+          if (insideQuotes && nextChar === '"') {
+            currentVal += '"';
+            i++;
+          } else {
+            insideQuotes = !insideQuotes;
+          }
+        } else if (char === ',' && !insideQuotes) {
+          row.push(currentVal.trim());
+          currentVal = '';
+        } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+          if (char === '\r' && nextChar === '\n') i++;
+          row.push(currentVal.trim());
+          if (row.length > 1 || row[0] !== '') lines.push(row);
+          row = [];
+          currentVal = '';
+        } else {
+          currentVal += char;
+        }
+      }
+      
+      if (currentVal || row.length > 0) {
+        row.push(currentVal.trim());
+        lines.push(row);
+      }
+
+      return lines.slice(1).map(cols => ({
+        timestamp: cols[0] || '很久很久以前',
+        name: cols[1] || '神祕淘氣鬼',
+        message: cols[2] || '（這傢伙什麼都沒留下）'
+      })).filter(item => item.name !== '神祕淘氣鬼' || item.message !== '（這傢伙什麼都沒留下）');
+    }
+
+    function renderCards(data) {
+      const masonryContainer = document.getElementById('masonry');
+      
+      const cardsHTML = data.map((item, index) => {
+        const safeName = escapeHTML(item.name);
+        const safeMessage = escapeHTML(item.message);
+        const safeTime = escapeHTML(item.timestamp);
+
+        return `
+          <div class="card" id="card-${index}">
+            <div class="card-header">
+              <span class="card-name">${safeName}</span>
+              <span class="card-time">${safeTime}</span>
+            </div>
+            <div class="card-content">${safeMessage}</div>
+          </div>
+        `;
+      }).join('');
+
+      masonryContainer.innerHTML = cardsHTML;
+    }
+
+    function startCarousel() {
+      const masonryContainer = document.getElementById('masonry');
+      const allCards = document.querySelectorAll('.card');
+
+      if (allCards.length === 0) return;
+
+      masonryContainer.classList.add('has-highlight');
+
+      const highlightNextCard = () => {
+        if (currentIndex >= 0 && allCards[currentIndex]) {
+          allCards[currentIndex].classList.remove('highlight');
+        }
+
+        currentIndex = (currentIndex + 1) % allCards.length;
+
+        const targetCard = allCards[currentIndex];
+        targetCard.classList.add('highlight');
+
+        targetCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest'
+        });
+      };
+
+      highlightNextCard();
+      timer = setInterval(highlightNextCard, ROTATE_INTERVAL_MS);
+    }
+
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
