@@ -1,4 +1,19 @@
-<!DOCTYPE html>
+<!-- do not change the markup -->
+<a href="#">
+  Checkout
+</a>
+
+<!-- 
+1. make look like a button
+2. change text color red on hover
+
+Cannot change html, only css.
+Look closely at
+-->  
+
+<div></div>
+<div></div>
+<div></div><!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -258,7 +273,7 @@
             left: 140%;
         }
 
-        /* 第二個按鈕微調為桃紅霓虹 */
+        /* 特殊色調樣式 (如桃紅霓虹) */
         .card-btn.unlocked.pink-style {
             background: rgba(255, 0, 127, 0.06);
             border-color: rgba(255, 0, 127, 0.4);
@@ -278,7 +293,7 @@
             background: rgba(255, 0, 127, 0.15);
         }
 
-        /* 未解鎖按鈕樣式 (Week 4 ~ 16) */
+        /* 未解鎖按鈕樣式 (Week 5 ~ 16) */
         .card-btn.locked {
             background: var(--locked-bg);
             border: 1px solid var(--locked-border);
@@ -354,7 +369,7 @@
                 <div class="card-title">Week 2 - 今天吃甚麼?</div>
             </a>
 
-            <!-- 按鈕 3 (已解鎖 - 迷音產生器) -->
+            <!-- 按鈕 3 (已解鎖) -->
             <a href="w3/index.html" class="card-btn unlocked">
                 <div class="card-header">
                     <span class="week-tag">WEEK 03</span>
@@ -363,15 +378,16 @@
                 <div class="card-title">Week 3 - 迷音產生器</div>
             </a>
 
-            <!-- 按鈕 4 至 16 (未解鎖) -->
-            <div class="card-btn locked">
+            <!-- 按鈕 4 (已解鎖 - 悄悄話) -->
+            <a href="w4/index.html" class="card-btn unlocked pink-style">
                 <div class="card-header">
                     <span class="week-tag">WEEK 04</span>
-                    <span class="status-icon">🔒</span>
+                    <span class="status-icon">💌</span>
                 </div>
-                <div class="card-title">未解鎖任務</div>
-            </div>
+                <div class="card-title">Week 4 - 悄悄話</div>
+            </a>
 
+            <!-- 按鈕 5 至 16 (未解鎖) -->
             <div class="card-btn locked">
                 <div class="card-header">
                     <span class="week-tag">WEEK 05</span>
